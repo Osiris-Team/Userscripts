@@ -9,19 +9,6 @@
 // @grant        none
 // ==/UserScript==
 
-/**
- * @typedef {Object} GameStats
- * @property {string} team - The team name or identifier (e.g., "Blue", "Red").
- * @property {string} hero - The hero name played by the player (e.g., "Tracer", "Reinhardt").
- * @property {string} rank - The player's rank (e.g., "Platinum", "Gold").
- * @property {string} KDA - The Kill/Death/Assist ratio (e.g., "10/2/5").
- * @property {number} kills - The number of kills (e.g., 10).
- * @property {number} damage - Total damage dealt (e.g., 12000).
- * @property {number} blocked - Damage blocked (e.g., 8000).
- * @property {number} healing - Total healing provided (e.g., 5000).
- * @property {number} accuracy - Accuracy percentage (e.g., 55.3).
- */
-
 var heroDetails = {
     "Damage per Minute": [
         {
@@ -441,6 +428,26 @@ var heroDetails = {
     ]
 }
 
+/**
+ * @typedef {object} Player
+ * @property {number} damage - The amount of damage dealt by the player.
+ * @property {number} blocked - The amount of damage blocked by the player.
+ * @property {number} healing - The amount of healing done by the player.
+ * @property {number} kills - The number of kills by the player.
+ * @property {number} deaths - The number of deaths of the player.
+ * @property {number} assists - The number of assists by the player.
+ * @property {string} name - The name of the player.
+ * @property {string} [hero] - The hero played by the player (optional).
+ * @property {string} [rank] - The rank of the player (optional).
+ * @property {string} [KDA] - The Kill/Death/Assist ratio of the player (optional).
+ * @property {number} [killsSolo] - The number of solo kills (optional).
+ * @property {number} [killsHead] - The number of headshot kills (optional).
+ * @property {number} [killsLastHit] - The number of last hit kills (optional).
+ * @property {number} [accuracy] - The accuracy of the player (optional).
+ * @property {HTMLTableElement} [table] - The HTML table element the player data came from (optional).
+ * @property {string} [team] - The team the player belongs to (optional).
+ */
+
 function determineStatType(player) {
     const highestStat = Math.max(player.damage, player.blocked, player.healing);
     return highestStat === player.damage
@@ -461,8 +468,8 @@ function determineStatTypeSecondary(player) {
 
 /**
  * Calculate the difference between the highest stat of player1 and the closest stat of player2.
- * @param {GameStats} player1 - The first player stats object.
- * @param {GameStats} player2 - The second player stats object.
+ * @param {Player} player1 - The first player stats object.
+ * @param {Player} player2 - The second player stats object.
  * @returns {Object} An object with the differences in damage, blocked, and healing, and the most relevant difference.
  */
 function calculateStatDifferences(player1, player2) {
@@ -529,9 +536,47 @@ function calculateStatDifferences(player1, player2) {
 }
 
 /**
+ * @param {Player} player1 - The first player stats object.
+ * @param {number} matchDurationSeconds - Duration of the match in seconds.
+ * @returns {Object} Top 500 player with adjusted stats.
+ */
+function getTop500Player(player1, matchDurationSeconds) {
+    let heroAliases = [player1.hero, player1.hero.replace(" ", "-"), player1.hero.replace("-", " ")];
+
+    if (!heroDetails || !heroDetails["Damage per Minute"] || !heroDetails["Damage Tanked per Minute"] || !heroDetails["Heal per Minute"]) {
+        throw new Error("heroDetails object is missing required properties.");
+    }
+
+    let heroDmg = heroDetails["Damage per Minute"].find(hero => heroAliases.includes(hero.name));
+    let heroBlock = heroDetails["Damage Tanked per Minute"].find(hero => heroAliases.includes(hero.name));
+    let heroHeal = heroDetails["Heal per Minute"].find(hero => heroAliases.includes(hero.name));
+    console.log(player1.hero + ": ", heroDmg, heroBlock, heroHeal)
+
+    let dmgPerMin = heroDmg ? parseInt(heroDmg.statValue.replace(/[^0-9]/g, "")) : 0;
+    let blockedPerMin = heroBlock ? parseInt(heroBlock.statValue.replace(/[^0-9]/g, "")) : 0;
+    let healPerMin = heroHeal ? parseInt(heroHeal.statValue.replace(/[^0-9]/g, "")) : 0;
+    console.log(player1.hero+": "+dmgPerMin+" "+blockedPerMin+" "+ healPerMin)
+
+    /** @type {Player} */
+    let player2 = {
+        name: "Avg. Top " + heroAliases[0],
+        hero: heroAliases[0],
+        damage: parseInt(""+ ((dmgPerMin / 60.0) * matchDurationSeconds)),
+        blocked: parseInt("" + ((blockedPerMin / 60.0) * matchDurationSeconds)),
+        healing: parseInt("" + ((healPerMin / 60.0) * matchDurationSeconds)),
+        kills: 0,
+        deaths: 0,
+        assists: 0,
+    };
+
+    return player2;
+}
+
+
+/**
  * Find the best pairs of players from two teams based on the closest stat comparison.
- * @param {GameStats[]} team1 - An array of player stats for team 1.
- * @param {GameStats[]} team2 - An array of player stats for team 2.
+ * @param {Player[]} team1 - An array of player stats for team 1.
+ * @param {Player[]} team2 - An array of player stats for team 2.
  * @returns {Array} An array of player pairs with their stat differences.
  */
 function compareTeams(team1, team2) {
@@ -801,7 +846,7 @@ function getComparisonTableNormalized(pairs) {
                 <th>Copy</th>
                 <th>Total Diff</th>
                 <th>Team A</th>
-                <th>Vs</th>
+                <th>Team B</th>
                 <th>Kills Diff</th>
                 <th>Assists Diff</th>
                 <th>Damage Diff</th>
@@ -1051,43 +1096,65 @@ function getMetaComparisonSpanSec(pairs) {
 /**
  * Main function to parse the team tables, compare players, and display the results.
  */
-function processGameData(team1, team2) {
+function processGameData(team1, team2, matchDurationSeconds) {
     console.log('Starting team comparison and result generation...');
     console.log('Team 1 data:', team1);
     console.log('Team 2 data:', team2);
     try {
         const pairs = compareTeams(team1, team2);
         console.log('Comparison complete. Generated pairs:', pairs);
+        
+        let team3 = []
+        team1.forEach(player => {
+            team3.push(getTop500Player(player, matchDurationSeconds))
+        });
+        const pairs500 = compareTeams(team1, team3);
+        console.log('Comparison500 complete. Generated pairs:', pairs500);
+
         const div = team1[0].table.parentElement.parentElement
 
-        const info0 = document.createElement('div')
-        info0.innerHTML = `
-            <h4>Ranked by Kills + Assists + Damage + Blocked + Heal</h4>
-            <span><small>We compare Team A to B. The player at the top of the table is very likely the best performing player in Team A.
+        // Table
+        let info = document.createElement('div')
+        info.innerHTML = `
+            <h4>vs TOP 500</h4>
+            <span><small>Ranked by Diff Damage + Blocked + Heal compared with the average TOP 500 player with the same hero. Damage/Kills: high number = bad, because it means DPS had to hit more shots per kill.</small></span>
+            `
+        div.parentElement.insertBefore(pad(info), div);
+
+        div.parentElement.insertBefore(pad(getMetaComparisonSpan(pairs500, team1, team3)), div);
+        div.parentElement.insertBefore(pad(getComparisonTable(pairs500)), div);
+
+        // Table
+        info = document.createElement('div')
+        info.innerHTML = `
+            <h4>vs TEAM B</h4>
+            <span><small>Ranked by Diff Kills + Assists + Damage + Blocked + Heal between Team A and B. The player at the top of the table is very likely the best performing player in Team A.
             If you see negative values it means the player was worse by that amount.
             Kills and assists are worth 1000 points each, to be able to compare their value with the amount of damage/block/heal.
             Note that tanks with shields might have a slight advantage: their blocked stat might be too high because dmg to shields is not counted for enemy DPS.
             We do NOT account for that.</small></span>
             `
-        div.parentElement.insertBefore(pad(info0), div);
+        div.parentElement.insertBefore(pad(info), div);
         div.parentElement.insertBefore(pad(getComparisonTableNormalized(pairs)), div);
 
-        const info = document.createElement('div')
+        // Table
+        info = document.createElement('div')
         info.innerHTML = `
-            <h4>Ranked by Damage + Blocked + Heal</h4>
-            <span><small>Same as the table above, however we compare damage, blocked and heal only. Damage/Kills: high number = bad, because it means DPS had to hit more shots per kill.</small></span>
+            <h4>vs TEAM B (raw)</h4>
+            <span><small>Ranked by Diff Damage + Blocked + Heal. Same as the table above, however we compare damage, blocked and heal only.</small></span>
             `
         div.parentElement.insertBefore(pad(info), div);
 
         div.parentElement.insertBefore(pad(getMetaComparisonSpan(pairs, team1, team2)), div);
         div.parentElement.insertBefore(pad(getComparisonTable(pairs)), div);
 
-        const info2 = document.createElement('div')
-        info2.innerHTML = `
-            <h4>Ranked by Kills + Assists</h4>
-            <span><small>Same as the table above, however we compare kills and assists between Team A and B only. Deaths are not added to the total diff. </small></span>
+        // Table
+        info = document.createElement('div')
+        info.innerHTML = `
+            <h4>vs TEAM B (value)</h4>
+            <span><small>Ranked by Diff Kills + Assists. Same as the table above, however we compare kills and assists between Team A and B only. Deaths are not added to the total diff. </small></span>
             `
-        div.parentElement.insertBefore(pad(info2), div);
+        div.parentElement.insertBefore(pad(info), div);
 
         div.parentElement.insertBefore(pad(getMetaComparisonSpanSec(pairs)), div);
         div.parentElement.insertBefore(pad(getComparisonTableSec(pairs)), div);
@@ -1121,7 +1188,7 @@ function extractPlayerData(table, teamName) {
                 table: table,
                 team: teamName,
                 name: cells[0]?.textContent.trim(),
-                hero: cells[1]?.textContent.trim(),
+                hero: cells[1]?.querySelector("img").alt.trim(),
                 KDA: cells[2]?.textContent.trim(),
                 kills: Number(cells[3]?.textContent.trim()) || 0,
                 deaths: Number(cells[4]?.textContent.trim()) || 0,
@@ -1138,7 +1205,7 @@ function extractPlayerData(table, teamName) {
                 table: table,
                 team: teamName,
                 name: cells[0]?.textContent.trim(),
-                hero: cells[1]?.textContent.trim(),
+                hero: cells[1]?.querySelector("img").alt.trim(),
                 rank: cells[2]?.textContent.trim(),
                 KDA: cells[3]?.textContent.trim(),
                 kills: Number(cells[4]?.textContent.trim()) || 0,
@@ -1157,6 +1224,23 @@ function extractPlayerData(table, teamName) {
     });
     console.log(`Extraction complete. Total players extracted: ${players.length}`);
     return players;
+}
+
+/**
+ * Parses a time string (e.g., "7m 46s") into total seconds.
+ * @param {string} timeStr - The time string to parse.
+ * @returns {number} Total time in seconds.
+ */
+function parseTimeString(timeStr) {
+    let minutes = 0, seconds = 0;
+
+    const minMatch = timeStr.match(/(\d+)m/);
+    const secMatch = timeStr.match(/(\d+)s/);
+
+    if (minMatch) minutes = parseInt(minMatch[1], 10);
+    if (secMatch) seconds = parseInt(secMatch[1], 10);
+
+    return (minutes * 60) + seconds;
 }
 
 /**
@@ -1225,7 +1309,10 @@ function extractPlayerData(table, teamName) {
                         // Once both tables are found, process the data
                         if (tablesAdded === 2) {
                             console.log('Both team tables detected. Starting data processing...');
-                            processGameData(team1, team2);
+                            
+                            let matchDurationSeconds = parseTimeString(document.querySelector("div.v3-match__stats > div > div.value > span").textContent);
+
+                            processGameData(team1, team2, matchDurationSeconds);
                             console.log('Data processing complete. Disconnecting observer.');
                             //observer.disconnect(); // Stop observing once both tables are found and processed
                             tablesAdded = 0; // Reset table tracking for future changes if needed
