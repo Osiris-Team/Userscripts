@@ -579,7 +579,7 @@ function getTop500Player(player1, matchDurationSeconds) {
  * @param {Player[]} team2 - An array of player stats for team 2.
  * @returns {Array} An array of player pairs with their stat differences.
  */
-function compareTeams(team1, team2) {
+function compareTeams(team1, team2, forceSameHeroes = false) {
     const pairs = [];
     const usedTeam1 = new Set(); // Track used players from Team 1
     const usedTeam2 = new Set(); // Track used players from Team 2
@@ -600,11 +600,18 @@ function compareTeams(team1, team2) {
             while (!found) {
                 for (let j = 0; j < team2.length; j++) {
                     if (usedTeam2.has(j)) continue; // Skip used players from Team 2
-                    if (!ignoreType && determineStatType(team2[j]) != p1Type) continue; // Try to find enemy players with same type first
-                    found = true;
 
                     const player1 = team1[i];
                     const player2 = team2[j];
+
+                    if (forceSameHeroes) { 
+                        if (player1.hero == null || player1.hero == "" || player2.hero == null || player2.hero == "")
+                            throw Error("Player1 or Player2 has null/empty hero field!")
+                        if (player1.hero != player2.hero) continue;
+                    }
+                    if (!ignoreType && determineStatType(team2[j]) != p1Type) continue; // Try to find enemy players with same type first
+                    found = true;
+                    
                     const statDiffs = calculateStatDifferences(player1, player2);
 
                     if (
