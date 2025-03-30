@@ -16,5 +16,9 @@ Adds multiple options to sort your comments as you can see below.
 Actually ranks the results by their stars count...
 ![image](https://github.com/user-attachments/assets/d47a09b4-ca3f-4c01-9275-48c6b4134ec5)
 
+### [Marvel Rivals Ultra Match Stats](https://github.com/Osiris-Team/Userscripts/blob/main/src/marvel_rivals_ultra_match_stats.js)
+Know exactly who to blame for your lost match based on stats!
+![image](https://github.com/user-attachments/assets/d47a09b4-ca3f-4c01-9275-48c6b4134ec5)
+
 
 
