@@ -18,7 +18,7 @@ Actually ranks the results by their stars count...
 
 ### [Marvel Rivals Ultra Match Stats](https://github.com/Osiris-Team/Userscripts/blob/main/src/marvel_rivals_ultra_match_stats.js)
 Know exactly who to blame for your lost match based on stats!
-![image](https://github.com/user-attachments/assets/d47a09b4-ca3f-4c01-9275-48c6b4134ec5)
+![image](![image](https://github.com/user-attachments/assets/7b97e78d-857b-405f-b925-0016364c1810))
 
 
 
