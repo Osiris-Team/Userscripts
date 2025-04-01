@@ -1115,7 +1115,7 @@ function processGameData(team1, team2, matchDurationSeconds) {
         team1.forEach(player => {
             team3.push(getTop500Player(player, matchDurationSeconds))
         });
-        const pairs500 = compareTeams(team1, team3);
+        const pairs500 = compareTeams(team1, team3, true);
         console.log('Comparison500 complete. Generated pairs:', pairs500);
 
         const div = team1[0].table.parentElement.parentElement
