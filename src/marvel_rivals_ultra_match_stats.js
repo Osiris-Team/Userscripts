@@ -555,13 +555,13 @@ function getTop500Player(player1, matchDurationSeconds) {
     let dmgPerMin = heroDmg ? parseInt(heroDmg.statValue.replace(/[^0-9]/g, "")) : 0;
     let blockedPerMin = heroBlock ? parseInt(heroBlock.statValue.replace(/[^0-9]/g, "")) : 0;
     let healPerMin = heroHeal ? parseInt(heroHeal.statValue.replace(/[^0-9]/g, "")) : 0;
-    console.log(player1.hero+": "+dmgPerMin+" "+blockedPerMin+" "+ healPerMin)
+    console.log(player1.hero + ": " + dmgPerMin + " " + blockedPerMin + " " + healPerMin)
 
     /** @type {Player} */
     let player2 = {
         name: "Avg. Top " + heroAliases[0],
         hero: heroAliases[0],
-        damage: parseInt(""+ ((dmgPerMin / 60.0) * matchDurationSeconds)),
+        damage: parseInt("" + ((dmgPerMin / 60.0) * matchDurationSeconds)),
         blocked: parseInt("" + ((blockedPerMin / 60.0) * matchDurationSeconds)),
         healing: parseInt("" + ((healPerMin / 60.0) * matchDurationSeconds)),
         kills: 0,
@@ -604,14 +604,14 @@ function compareTeams(team1, team2, forceSameHeroes = false) {
                     const player1 = team1[i];
                     const player2 = team2[j];
 
-                    if (forceSameHeroes) { 
+                    if (forceSameHeroes) {
                         if (player1.hero == null || player1.hero == "" || player2.hero == null || player2.hero == "")
                             throw Error("Player1 or Player2 has null/empty hero field!")
                         if (player1.hero != player2.hero) continue;
                     }
                     if (!ignoreType && determineStatType(team2[j]) != p1Type) continue; // Try to find enemy players with same type first
                     found = true;
-                    
+
                     const statDiffs = calculateStatDifferences(player1, player2);
 
                     if (
@@ -723,9 +723,9 @@ function getComparisonTable(pairs) {
                 <th>Total Diff</th>
                 <th>Team A</th>
                 <th>Team B</th>
-                <th>Damage Diff</th>
-                <th>Blocked Diff</th>
-                <th>Healing Diff</th>
+                <th>💥</th>
+                <th>🛡️</th>
+                <th>💚</th>
             </tr>
         </thead>
         <tbody>
@@ -778,9 +778,9 @@ function getComparisonTableSec(pairs) {
                 <th>Total Diff</th>
                 <th>Team A</th>
                 <th>Team B</th>
-                <th>Kills Diff</th>
-                <th>Deaths Diff</th>
-                <th>Assists Diff</th>
+                <th>🔫</th>
+                <th>💀</th>
+                <th>⚔️</th>
             </tr>
         </thead>
         <tbody>
@@ -854,11 +854,11 @@ function getComparisonTableNormalized(pairs) {
                 <th>Total Diff</th>
                 <th>Team A</th>
                 <th>Team B</th>
-                <th>Kills Diff</th>
-                <th>Assists Diff</th>
-                <th>Damage Diff</th>
-                <th>Blocked Diff</th>
-                <th>Heal Diff</th>
+                <th>🔫</th>
+                <th>⚔️</th>
+                <th>💥</th>
+                <th>🛡️</th>
+                <th>💚</th>
             </tr>
         </thead>
         <tbody>
@@ -944,12 +944,12 @@ function getMetaComparisonSpan(pairs, team1, team2) {
             <tr>
                 <th>Copy</th>
                 <th>Team A Players in Negative</th>
-                <th>Team Diff Damage</th>
+                <th>💥</th>
                 <th>Damage/Kills</th>
-                <th>Team Diff Blocked</th>
-                <th>Block Eff%</th>
-                <th>Team Diff Heal</th>
-                <th>Heal Eff%</th>
+                <th>🛡️</th>
+                <th>🛡️ Eff%</th>
+                <th>💚</th>
+                <th>💚 Eff%</th>
             </tr>
         </thead>
         <tbody>
@@ -1068,9 +1068,9 @@ function getMetaComparisonSpanSec(pairs) {
             <tr>
                 <th>Copy</th>
                 <th>Team A Players in Negative</th>
-                <th>Team Diff Kills</th>
-                <th>Team Diff Deaths</th>
-                <th>Team Diff Assists</th>
+                <th>Team  🔫</th>
+                <th>Team 💀</th>
+                <th>Team ⚔️</th>
             </tr>
         </thead>
         <tbody>
@@ -1110,7 +1110,7 @@ function processGameData(team1, team2, matchDurationSeconds) {
     try {
         const pairs = compareTeams(team1, team2);
         console.log('Comparison complete. Generated pairs:', pairs);
-        
+
         let team3 = []
         team1.forEach(player => {
             team3.push(getTop500Player(player, matchDurationSeconds))
@@ -1123,7 +1123,7 @@ function processGameData(team1, team2, matchDurationSeconds) {
         // Table
         let info = document.createElement('div')
         info.innerHTML = `
-            <h4>vs TOP 500</h4>
+            <h4>vs TOP 500 💥🛡️💚</h4>
             <span><small>Ranked by Diff Damage + Blocked + Heal compared with the average TOP 500 player with the same hero. Damage/Kills: high number = bad, because it means DPS had to hit more shots per kill.</small></span>
             `
         div.parentElement.insertBefore(pad(info), div);
@@ -1134,7 +1134,7 @@ function processGameData(team1, team2, matchDurationSeconds) {
         // Table
         info = document.createElement('div')
         info.innerHTML = `
-            <h4>vs TEAM B</h4>
+            <h4>vs TEAM B 🔫⚔️💥🛡️💚</h4>
             <span><small>Ranked by Diff Kills + Assists + Damage + Blocked + Heal between Team A and B. The player at the top of the table is very likely the best performing player in Team A.
             If you see negative values it means the player was worse by that amount.
             Kills and assists are worth 1000 points each, to be able to compare their value with the amount of damage/block/heal.
@@ -1147,8 +1147,8 @@ function processGameData(team1, team2, matchDurationSeconds) {
         // Table
         info = document.createElement('div')
         info.innerHTML = `
-            <h4>vs TEAM B (raw)</h4>
-            <span><small>Ranked by Diff Damage + Blocked + Heal. Same as the table above, however we compare damage, blocked and heal only.</small></span>
+            <h4>vs TEAM B 💥🛡️💚</h4>
+            <span><small>Ranked by Diff Damage 💥 + Blocked 🛡️ + Heal 💚. Same as the table above, however we compare damage, blocked and heal only.</small></span>
             `
         div.parentElement.insertBefore(pad(info), div);
 
@@ -1158,8 +1158,8 @@ function processGameData(team1, team2, matchDurationSeconds) {
         // Table
         info = document.createElement('div')
         info.innerHTML = `
-            <h4>vs TEAM B (value)</h4>
-            <span><small>Ranked by Diff Kills + Assists. Same as the table above, however we compare kills and assists between Team A and B only. Deaths are not added to the total diff. </small></span>
+            <h4>vs TEAM B 🔫⚔️</h4>
+            <span><small>Ranked by Diff Kills 🔫 + Assists ⚔️. Same as the table above, however we compare kills and assists between Team A and B only. Deaths are not added to the total diff. </small></span>
             `
         div.parentElement.insertBefore(pad(info), div);
 
@@ -1316,7 +1316,7 @@ function parseTimeString(timeStr) {
                         // Once both tables are found, process the data
                         if (tablesAdded === 2) {
                             console.log('Both team tables detected. Starting data processing...');
-                            
+
                             let matchDurationSeconds = parseTimeString(document.querySelector("div.v3-match__stats > div > div.value > span").textContent);
 
                             processGameData(team1, team2, matchDurationSeconds);
