@@ -897,6 +897,135 @@ function getComparisonTableNormalized(pairs) {
     return table;
 }
 
+function getComparisonTableEfficiency(pairs) {
+    // Format helper - rounds to 1 decimal and removes trailing .0 if needed
+    const formatPercent = (value) => {
+        const rounded = Math.round(value * 10) / 10;
+        return rounded % 1 === 0 ? rounded.toString() : rounded.toFixed(1);
+    };
+
+
+    let totalTeam1Damage = 0;
+    let totalTeam2Damage = 0;
+    pairs.forEach(pair => {
+        totalTeam1Damage += pair.player1.damage;
+        totalTeam2Damage += pair.player2.damage;
+    });
+
+    // Calculate efficiencies for each pair
+    const pairsWithEfficiency = pairs.map(pair => {
+        // Damage efficiency: 100% if 300 damage per kill (standard)
+        const damageEffP1 = pair.player1.kills > 0 ? (300 * pair.player1.kills) / pair.player1.damage * 100 : 0;
+        const damageEffP2 = pair.player2.kills > 0 ? (300 * pair.player2.kills) / pair.player2.damage * 100 : 0;
+        const damageEffDiff = damageEffP1 - damageEffP2;
+
+        // Blocked efficiency: 100% if blocked all damage taken
+        const blockedEffP1 = totalTeam2Damage > 0 ? pair.player1.blocked / totalTeam2Damage * 100 : 0;
+        const blockedEffP2 = totalTeam1Damage > 0 ? pair.player2.blocked / totalTeam1Damage * 100 : 0;
+        const blockedEffDiff = blockedEffP1 - blockedEffP2;
+
+        // Healing efficiency: 100% if healed all damage taken by team
+        // Note: This might need adjustment based on your exact definition
+        const healingEffP1 = totalTeam2Damage > 0 ? pair.player1.healing / totalTeam2Damage * 100 : 0;
+        const healingEffP2 = totalTeam1Damage > 0 ? pair.player2.healing / totalTeam1Damage * 100 : 0;
+        const healingEffDiff = healingEffP1 - healingEffP2;
+
+        // Total efficiency difference (weighted sum if needed)
+        const totalEffDiff = damageEffDiff + blockedEffDiff + healingEffDiff;
+
+        // Return with formatted percentages
+        return {
+            ...pair,
+            // Raw values (for sorting/calculations)
+            _damageEffP1: damageEffP1,
+            _damageEffP2: damageEffP2,
+            _blockedEffP1: blockedEffP1,
+            _blockedEffP2: blockedEffP2,
+            _healingEffP1: healingEffP1,
+            _healingEffP2: healingEffP2,
+            _totalEffDiff: totalEffDiff,
+
+            // Formatted strings (for display)
+            damageEffP1: formatPercent(damageEffP1),
+            damageEffP2: formatPercent(damageEffP2),
+            damageEffDiff: formatPercent(damageEffDiff),
+            blockedEffP1: formatPercent(blockedEffP1),
+            blockedEffP2: formatPercent(blockedEffP2),
+            blockedEffDiff: formatPercent(blockedEffDiff),
+            healingEffP1: formatPercent(healingEffP1),
+            healingEffP2: formatPercent(healingEffP2),
+            healingEffDiff: formatPercent(healingEffDiff),
+            totalEffDiff: formatPercent(totalEffDiff)
+        };
+    });
+
+    // Sort by raw total efficiency difference (using _totalEffDiff)
+    const sortedPairs = [...pairsWithEfficiency].sort((a, b) => b._totalEffDiff - a._totalEffDiff);
+
+    const generateSummary = (pair, index) => {
+        const position = index + 1;
+        const positionSuffix = ['st', 'nd', 'rd'][position - 1] || 'th';
+        return `${pair.player1.name} ranked ${position}${positionSuffix} by efficiency, ` +
+            `with ${sPlus(pair.damageEffDiff)}% 💥, ` +
+            `${sPlus(pair.blockedEffDiff)}% 🛡️, and ` +
+            `${sPlus(pair.healingEffDiff)}% 💚 efficiency ` +
+            `difference vs ${pair.player2.name}.`;
+    };
+
+    const table = document.createElement('table');
+    table.id = "cssTable";
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Copy</th>
+                <th>Total Eff Diff</th>
+                <th>Team A</th>
+                <th>Team B</th>
+                <th>💥Eff%</th>
+                <th>🛡️Eff%</th>
+                <th>💚Eff%</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${sortedPairs.map((pair, index) => `
+                <tr>
+                    <td>
+                        <button class="copy-button"
+                                data-summary="${encodeURIComponent(generateSummary(pair, index))}">
+                            📋
+                        </button>
+                    </td>
+                    <td>${sPlus(s(pair.totalEffDiff))}</td>
+                    <td>${pair.player1.name} <small>${pair.statTypeP1}</small></td>
+                    <td>${pair.player2.name} <small>${pair.statTypeP2}</small></td>
+                    <td>${sPlus(s(pair.damageEffDiff))} <small>(${pair.damageEffP1}% vs ${pair.damageEffP2}%)</small></td>
+                    <td>${sPlus(s(pair.blockedEffDiff))} <small>(${pair.blockedEffP1}% vs ${pair.blockedEffP2}%)</small></td>
+                    <td>${sPlus(s(pair.healingEffDiff))} <small>(${pair.healingEffP1}% vs ${pair.healingEffP2}%)</small></td>
+                </tr>`).join('')}
+        </tbody>
+        <style>
+        #cssTable td {
+            text-align: center;
+            vertical-align: middle;
+        }
+        small {
+            font-size: 0.8em;
+            color: #666;
+        }
+        .copy-button {
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1.2em;
+        }
+        </style>
+    `;
+
+    registerCopyBtns(table);
+
+    return table;
+}
+
 /**
  * Generate a summary span for the meta comparison.
  * @param {Array} pairs - An array of player pairs with their stat differences.
@@ -1006,6 +1135,7 @@ function registerCopyBtns(table) {
 }
 
 function s(num) {
+    if (isNaN(num)) throw new Error("Not a number: " + num)
     if (num < 0) return `<span style="color: #eea29a;">${num}</span>`
     else return `<span style="color: #86af49;">${num}</span>`
 }
@@ -1122,9 +1252,19 @@ function processGameData(team1, team2, matchDurationSeconds) {
 
         // Table
         let info = document.createElement('div')
+        info.classList.add("my-info-section");
         info.innerHTML = `
+            <style>
+            .my-info-section{
+              justify-items: center;
+              text-align: center;
+              border: solid;
+              border-color: white;
+            }
+            </style>
             <h4>vs TOP 500 💥🛡️💚</h4>
-            <span><small>Ranked by Diff Damage + Blocked + Heal compared with the average TOP 500 player with the same hero. Damage/Kills: high number = bad, because it means DPS had to hit more shots per kill.</small></span>
+            <span><small>Ranked by Diff Damage 💥 + Blocked 🛡️ + Heal 💚 compared with the average TOP 500 player with the same hero. The TOP 500 players performance is adapted to this matches length.
+            Damage/Kills: high number = bad, because it means DPS had to hit more shots per kill.</small></span>
             `
         div.parentElement.insertBefore(pad(info), div);
 
@@ -1133,10 +1273,37 @@ function processGameData(team1, team2, matchDurationSeconds) {
 
         // Table
         info = document.createElement('div')
+        info.classList.add("my-info-section");
+        info.innerHTML = `
+            <h4>vs TEAM B 💥🛡️💚</h4>
+            <span><small>Ranked by Diff Damage 💥 + Blocked 🛡️ + Heal 💚.</small></span>
+            `
+        div.parentElement.insertBefore(pad(info), div);
+
+        div.parentElement.insertBefore(pad(getMetaComparisonSpan(pairs, team1, team2)), div);
+        div.parentElement.insertBefore(pad(getComparisonTable(pairs)), div);
+
+        // Table
+        info = document.createElement('div')
+        info.classList.add("my-info-section");
+        info.innerHTML = `
+            <h4>vs TEAM B 💥Eff%🛡️Eff%💚Eff%</h4>
+            <span><small>Ranked by efficiency Diff in %, for Damage 💥 + Blocked 🛡️ + Heal 💚.
+            Damage efficiency is 100% if the player had an average of 300 damage per kill.
+            Blocked efficiency is 100% if the player blocked all damage of the enemy team.
+            Heal efficiency is 100% if the player healed all damage of the enemy team.
+            Those efficiency values are then also calculated for the enemy team and compared/diffed with.
+            </small></span>
+            `
+        div.parentElement.insertBefore(pad(info), div);
+        div.parentElement.insertBefore(pad(getComparisonTableEfficiency(pairs)), div);
+
+        // Table
+        info = document.createElement('div')
+        info.classList.add("my-info-section");
         info.innerHTML = `
             <h4>vs TEAM B 🔫⚔️💥🛡️💚</h4>
-            <span><small>Ranked by Diff Kills + Assists + Damage + Blocked + Heal between Team A and B. The player at the top of the table is very likely the best performing player in Team A.
-            If you see negative values it means the player was worse by that amount.
+            <span><small>Ranked by Diff Kills 🔫 + Assists ⚔️ + Damage 💥 + Blocked 🛡️ + Heal 💚 between Team A and B.
             Kills and assists are worth 1000 points each, to be able to compare their value with the amount of damage/block/heal.
             Note that tanks with shields might have a slight advantage: their blocked stat might be too high because dmg to shields is not counted for enemy DPS.
             We do NOT account for that.</small></span>
@@ -1146,17 +1313,7 @@ function processGameData(team1, team2, matchDurationSeconds) {
 
         // Table
         info = document.createElement('div')
-        info.innerHTML = `
-            <h4>vs TEAM B 💥🛡️💚</h4>
-            <span><small>Ranked by Diff Damage 💥 + Blocked 🛡️ + Heal 💚. Same as the table above, however we compare damage, blocked and heal only.</small></span>
-            `
-        div.parentElement.insertBefore(pad(info), div);
-
-        div.parentElement.insertBefore(pad(getMetaComparisonSpan(pairs, team1, team2)), div);
-        div.parentElement.insertBefore(pad(getComparisonTable(pairs)), div);
-
-        // Table
-        info = document.createElement('div')
+        info.classList.add("my-info-section");
         info.innerHTML = `
             <h4>vs TEAM B 🔫⚔️</h4>
             <span><small>Ranked by Diff Kills 🔫 + Assists ⚔️. Same as the table above, however we compare kills and assists between Team A and B only. Deaths are not added to the total diff. </small></span>
@@ -1296,6 +1453,15 @@ function parseTimeString(timeStr) {
                             if (table.parentElement == null || !table.parentElement.classList.contains('group/table')) {
                                 console.log(`Table at index ${index} ignored. Parent does not match 'group/table'.`);
                                 console.log(table);
+                                return;
+                            }
+
+
+                            const rows = table.querySelectorAll('tbody tr');
+                            if (rows.length <= 4) {
+                                console.log(`Table at index ${index} will be processed later. Has only ${rows.length} rows <= 4.`);
+                                console.log(table);
+                                setTimeout(() => { observerCallback(mutationsList, observer) }, 3000);
                                 return;
                             }
 
