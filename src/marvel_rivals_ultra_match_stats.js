@@ -599,10 +599,10 @@ function getTop500Player(player1, matchDurationSeconds) {
     let blockedPerMin = heroBlock ? parseInt(heroBlock.replace(/[^0-9]/g, "")) : 0;
     let healPerMin = heroHeal ? parseInt(heroHeal.replace(/[^0-9]/g, "")) : 0;
 
-    // Actual fraction numbers, thus do not remove the "." or ","
-    let killsPerMatch = heroKills ? parseFloat(heroKills.replace(/[^0-9.,]/g, "")) : 0;
-    let deathsPerMatch = heroDeaths ? parseFloat(heroDeaths.replace(/[^0-9.,]/g, "")) : 0;
-    let assistsPerMatch = heroAssists ? parseFloat(heroAssists.replace(/[^0-9.,]/g, "")) : 0;
+    // Actual fraction numbers, thus do not remove the "." or ",", but then we round up to get an integer
+    let killsPerMatch = heroKills ? Math.ceil(parseFloat(heroKills.replace(/[^0-9.,]/g, ""))) : 0;
+    let deathsPerMatch = heroDeaths ? Math.ceil(parseFloat(heroDeaths.replace(/[^0-9.,]/g, ""))) : 0;
+    let assistsPerMatch = heroAssists ? Math.ceil(parseFloat(heroAssists.replace(/[^0-9.,]/g, ""))) : 0;
 
     console.log(player1.hero + ": " + dmgPerMin + " " + blockedPerMin + " " + healPerMin);
 
