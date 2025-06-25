@@ -1,432 +1,473 @@
 // ==UserScript==
 // @name         Marvel Rivals Better Game Stats Table
 // @namespace    http://tampermonkey.net/
-// @version      2025-01-15
-// @description  try to take over the world!
+// @version      2025-06-25
+// @description  Shows additional tables and stats in the match stats view.
 // @author       You
 // @match        https://tracker.gg/marvel-rivals/profile/ign/**
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tracker.gg
 // @grant        none
 // ==/UserScript==
+function getUsernameFromCurrentUrl() {
+    // Split the pathname into parts and remove empty strings
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
 
-var heroDetails = {
-    "Damage per Minute": [
-        {
-            "name": "The Punisher",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1014001.png",
-            "statValue": "2.068/min"
-        },
-        {
-            "name": "Human Torch",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1017001.png",
-            "statValue": "2.002/min"
-        },
-        {
-            "name": "Squirrel Girl",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1032001.png",
-            "statValue": "1.990/min"
-        },
-        {
-            "name": "Moon Knight",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1030001.png",
-            "statValue": "1.970/min"
-        },
-        {
-            "name": "Storm",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1015001.png",
-            "statValue": "1.965/min"
-        },
-        {
-            "name": "Winter Soldier",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1041001.png",
-            "statValue": "1.817/min"
-        },
-        {
-            "name": "Star Lord",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1043001.png",
-            "statValue": "1.815/min"
-        },
-        {
-            "name": "Groot",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1027001.png",
-            "statValue": "1.780/min"
-        },
-        {
-            "name": "Namor",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1045001.png",
-            "statValue": "1.713/min"
-        },
-        {
-            "name": "Hela",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1024001.png",
-            "statValue": "1.681/min"
-        },
-        {
-            "name": "Iron Man",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1034001.png",
-            "statValue": "1.634/min"
-        },
-        {
-            "name": "Mister Fantastic",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1040001.png",
-            "statValue": "1.594/min"
-        },
-        {
-            "name": "Psylocke",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1048001.png",
-            "statValue": "1.567/min"
-        },
-        {
-            "name": "Hawkeye",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1021001.png",
-            "statValue": "1.549/min"
-        },
-        {
-            "name": "The Thing",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1051001.png",
-            "statValue": "1.541/min"
-        },
-        {
-            "name": "Magneto",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1037001.png",
-            "statValue": "1.521/min"
-        },
-        {
-            "name": "Thor",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1039001.png",
-            "statValue": "1.517/min"
-        },
-        {
-            "name": "Doctor Strange",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1018001.png",
-            "statValue": "1.514/min"
-        },
-        {
-            "name": "Scarlet Witch",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1038001.png",
-            "statValue": "1.479/min"
-        },
-        {
-            "name": "Magik",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1029001.png",
-            "statValue": "1.467/min"
-        },
-        {
-            "name": "Venom",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1035001.png",
-            "statValue": "1.389/min"
-        },
-        {
-            "name": "Wolverine",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1049001.png",
-            "statValue": "1.386/min"
-        },
-        {
-            "name": "Peni Parker",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1042001.png",
-            "statValue": "1.358/min"
-        },
-        {
-            "name": "Black Widow",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1033001.png",
-            "statValue": "1.329/min"
-        },
-        {
-            "name": "Iron Fist",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1052001.png",
-            "statValue": "1.265/min"
-        },
-        {
-            "name": "Hulk",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1011001.png",
-            "statValue": "1.188/min"
-        },
-        {
-            "name": "Black Panther",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1026001.png",
-            "statValue": "1.168/min"
-        },
-        {
-            "name": "Captain America",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1022001.png",
-            "statValue": "1.138/min"
-        },
-        {
-            "name": "Spider Man",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1036001.png",
-            "statValue": "1.042/min"
-        },
-        {
-            "name": "Adam Warlock",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1046001.png",
-            "statValue": "988/min"
-        },
-        {
-            "name": "Mantis",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1020001.png",
-            "statValue": "845/min"
-        },
-        {
-            "name": "Jeff The Land Shark",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1047001.png",
-            "statValue": "813/min"
-        },
-        {
-            "name": "Loki",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1016001.png",
-            "statValue": "716/min"
-        },
-        {
-            "name": "Invisible Woman",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1050001.png",
-            "statValue": "681/min"
-        },
-        {
-            "name": "Cloak & Dagger",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1025001.png",
-            "statValue": "566/min"
-        },
-        {
-            "name": "Luna Snow",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1031001.png",
-            "statValue": "521/min"
-        },
-        {
-            "name": "Rocket Raccoon",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1023001.png",
-            "statValue": "155/min"
-        }
-    ],
-    "Heal per Minute": [
-        {
-            "name": "Luna Snow",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1031001.png",
-            "statValue": "2.574/min"
-        },
-        {
-            "name": "Cloak & Dagger",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1025001.png",
-            "statValue": "2.412/min"
-        },
-        {
-            "name": "Rocket Raccoon",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1023001.png",
-            "statValue": "2.348/min"
-        },
-        {
-            "name": "Invisible Woman",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1050001.png",
-            "statValue": "2.313/min"
-        },
-        {
-            "name": "Loki",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1016001.png",
-            "statValue": "2.249/min"
-        },
-        {
-            "name": "Mantis",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1020001.png",
-            "statValue": "1.479/min"
-        },
-        {
-            "name": "Adam Warlock",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1046001.png",
-            "statValue": "1.406/min"
-        },
-        {
-            "name": "Jeff The Land Shark",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1047001.png",
-            "statValue": "1.230/min"
-        }
-    ],
-    "Damage Tanked per Minute": [
-        {
-            "name": "Groot",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1027001.png",
-            "statValue": "4.044/min"
-        },
-        {
-            "name": "Doctor Strange",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1018001.png",
-            "statValue": "3.213/min"
-        },
-        {
-            "name": "Magneto",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1037001.png",
-            "statValue": "2.886/min"
-        },
-        {
-            "name": "The Thing",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1051001.png",
-            "statValue": "2.850/min"
-        },
-        {
-            "name": "Hulk",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1011001.png",
-            "statValue": "2.792/min"
-        },
-        {
-            "name": "Venom",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1035001.png",
-            "statValue": "2.714/min"
-        },
-        {
-            "name": "Captain America",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1022001.png",
-            "statValue": "2.504/min"
-        },
-        {
-            "name": "Thor",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1039001.png",
-            "statValue": "2.269/min"
-        },
-        {
-            "name": "Peni Parker",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1042001.png",
-            "statValue": "2.032/min"
-        },
-        {
-            "name": "Mister Fantastic",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1040001.png",
-            "statValue": "1.921/min"
-        },
-        {
-            "name": "Wolverine",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1049001.png",
-            "statValue": "1.412/min"
-        },
-        {
-            "name": "Invisible Woman",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1050001.png",
-            "statValue": "1.188/min"
-        },
-        {
-            "name": "The Punisher",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1014001.png",
-            "statValue": "1.176/min"
-        },
-        {
-            "name": "Iron Fist",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1052001.png",
-            "statValue": "1.148/min"
-        },
-        {
-            "name": "Winter Soldier",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1041001.png",
-            "statValue": "1.091/min"
-        },
-        {
-            "name": "Magik",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1029001.png",
-            "statValue": "937/min"
-        },
-        {
-            "name": "Hawkeye",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1021001.png",
-            "statValue": "881/min"
-        },
-        {
-            "name": "Storm",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1015001.png",
-            "statValue": "852/min"
-        },
-        {
-            "name": "Mantis",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1020001.png",
-            "statValue": "837/min"
-        },
-        {
-            "name": "Adam Warlock",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1046001.png",
-            "statValue": "834/min"
-        },
-        {
-            "name": "Jeff The Land Shark",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1047001.png",
-            "statValue": "811/min"
-        },
-        {
-            "name": "Star Lord",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1043001.png",
-            "statValue": "806/min"
-        },
-        {
-            "name": "Luna Snow",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1031001.png",
-            "statValue": "762/min"
-        },
-        {
-            "name": "Iron Man",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1034001.png",
-            "statValue": "735/min"
-        },
-        {
-            "name": "Namor",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1045001.png",
-            "statValue": "735/min"
-        },
-        {
-            "name": "Black Panther",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1026001.png",
-            "statValue": "733/min"
-        },
-        {
-            "name": "Moon Knight",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1030001.png",
-            "statValue": "731/min"
-        },
-        {
-            "name": "Squirrel Girl",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1032001.png",
-            "statValue": "715/min"
-        },
-        {
-            "name": "Psylocke",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1048001.png",
-            "statValue": "689/min"
-        },
-        {
-            "name": "Scarlet Witch",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1038001.png",
-            "statValue": "680/min"
-        },
-        {
-            "name": "Hela",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1024001.png",
-            "statValue": "660/min"
-        },
-        {
-            "name": "Cloak & Dagger",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1025001.png",
-            "statValue": "659/min"
-        },
-        {
-            "name": "Spider Man",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1036001.png",
-            "statValue": "646/min"
-        },
-        {
-            "name": "Black Widow",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1033001.png",
-            "statValue": "645/min"
-        },
-        {
-            "name": "Loki",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1016001.png",
-            "statValue": "621/min"
-        },
-        {
-            "name": "Human Torch",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1017001.png",
-            "statValue": "619/min"
-        },
-        {
-            "name": "Rocket Raccoon",
-            "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1023001.png",
-            "statValue": "377/min"
-        }
-    ]
+    // Find the position of 'profile' in the path
+    const profileIndex = pathParts.indexOf('profile');
+
+    // Username should be two positions after 'profile'
+    if (profileIndex !== -1 && profileIndex + 2 < pathParts.length) {
+        return pathParts[profileIndex + 2];
+    }
+
+    return null;
 }
+
+// Usage:
+const thisUser = getUsernameFromCurrentUrl();
+console.log('Current username:', thisUser);
+
+// Taken from: https://rivalstracker.com/heroes/stats
+var heroDetails = [
+    {
+        "name": "The Punisher",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1014001.png",
+        "damagePerMinute": "2.158/min",
+        "damageTankedPerMinute": "1.268/min",
+        "kills": "19.4/match",
+        "deaths": "6.4/match",
+        "assists": "0.2/match",
+        "kdaRatio": "3.08",
+        "playTime": "1846h played"
+    },
+    {
+        "name": "Moon Knight",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1030001.png",
+        "damagePerMinute": "2.139/min",
+        "damageTankedPerMinute": "837/min",
+        "kills": "16.1/match",
+        "deaths": "5.8/match",
+        "assists": "0.2/match",
+        "kdaRatio": "2.83",
+        "playTime": "162h played"
+    },
+    {
+        "name": "Human Torch",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1017001.png",
+        "damagePerMinute": "2.006/min",
+        "damageTankedPerMinute": "749/min",
+        "kills": "20.4/match",
+        "deaths": "5.5/match",
+        "assists": "0.1/match",
+        "kdaRatio": "3.76",
+        "playTime": "723h played"
+    },
+    {
+        "name": "Squirrel Girl",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1032001.png",
+        "damagePerMinute": "1.990/min",
+        "damageTankedPerMinute": "755/min",
+        "kills": "16.1/match",
+        "deaths": "5.7/match",
+        "assists": "5.2/match",
+        "kdaRatio": "3.72",
+        "playTime": "291h played"
+    },
+    {
+        "name": "Storm",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1015001.png",
+        "damagePerMinute": "1.950/min",
+        "damageTankedPerMinute": "944/min",
+        "kills": "21.6/match",
+        "deaths": "6.7/match",
+        "assists": "16.4/match",
+        "kdaRatio": "5.70",
+        "playTime": "561h played"
+    },
+    {
+        "name": "Iron Man",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1034001.png",
+        "damagePerMinute": "1.862/min",
+        "damageTankedPerMinute": "836/min",
+        "kills": "19.2/match",
+        "deaths": "6.2/match",
+        "assists": "0.2/match",
+        "kdaRatio": "3.12",
+        "playTime": "945h played"
+    },
+    {
+        "name": "Winter Soldier",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1041001.png",
+        "damagePerMinute": "1.814/min",
+        "damageTankedPerMinute": "1.154/min",
+        "kills": "17.0/match",
+        "deaths": "5.7/match",
+        "assists": "11.5/match",
+        "kdaRatio": "5.02",
+        "playTime": "1536h played"
+    },
+    {
+        "name": "Namor",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1045001.png",
+        "damagePerMinute": "1.773/min",
+        "damageTankedPerMinute": "733/min",
+        "kills": "16.6/match",
+        "deaths": "4.8/match",
+        "assists": "0.7/match",
+        "kdaRatio": "3.62",
+        "playTime": "270h played"
+    },
+    {
+        "name": "Star Lord",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1043001.png",
+        "damagePerMinute": "1.721/min",
+        "damageTankedPerMinute": "824/min",
+        "kills": "19.7/match",
+        "deaths": "6.1/match",
+        "assists": "0.1/match",
+        "kdaRatio": "3.27",
+        "playTime": "716h played"
+    },
+    {
+        "name": "Hela",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1024001.png",
+        "damagePerMinute": "1.703/min",
+        "damageTankedPerMinute": "714/min",
+        "kills": "18.1/match",
+        "deaths": "6.2/match",
+        "assists": "1.2/match",
+        "kdaRatio": "3.11",
+        "playTime": "2351h played"
+    },
+    {
+        "name": "Mister Fantastic",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1040001.png",
+        "damagePerMinute": "1.682/min",
+        "damageTankedPerMinute": "1.948/min",
+        "kills": "17.0/match",
+        "deaths": "5.5/match",
+        "assists": "4.5/match",
+        "kdaRatio": "3.89",
+        "playTime": "396h played"
+    },
+    {
+        "name": "Emma Frost",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1053001.png",
+        "damagePerMinute": "1.678/min",
+        "damageTankedPerMinute": "2.728/min",
+        "kills": "17.6/match",
+        "deaths": "5.0/match",
+        "assists": "3.9/match",
+        "kdaRatio": "4.28",
+        "playTime": "4151h played"
+    },
+    {
+        "name": "Groot",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1027001.png",
+        "damagePerMinute": "1.648/min",
+        "damageTankedPerMinute": "4.248/min",
+        "kills": "15.7/match",
+        "deaths": "4.7/match",
+        "assists": "2.5/match",
+        "kdaRatio": "3.88",
+        "playTime": "686h played"
+    },
+    {
+        "name": "Psylocke",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1048001.png",
+        "damagePerMinute": "1.583/min",
+        "damageTankedPerMinute": "732/min",
+        "kills": "20.4/match",
+        "deaths": "6.0/match",
+        "assists": "0.1/match",
+        "kdaRatio": "3.45",
+        "playTime": "1670h played"
+    },
+    {
+        "name": "Scarlet Witch",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1038001.png",
+        "damagePerMinute": "1.566/min",
+        "damageTankedPerMinute": "757/min",
+        "kills": "17.7/match",
+        "deaths": "5.5/match",
+        "assists": "0.5/match",
+        "kdaRatio": "3.32",
+        "playTime": "100h played"
+    },
+    {
+        "name": "Hawkeye",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1021001.png",
+        "damagePerMinute": "1.547/min",
+        "damageTankedPerMinute": "879/min",
+        "kills": "16.7/match",
+        "deaths": "6.4/match",
+        "assists": "6.2/match",
+        "kdaRatio": "3.57",
+        "playTime": "675h played"
+    },
+    {
+        "name": "Thor",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1039001.png",
+        "damagePerMinute": "1.544/min",
+        "damageTankedPerMinute": "2.206/min",
+        "kills": "15.8/match",
+        "deaths": "5.9/match",
+        "assists": "1.9/match",
+        "kdaRatio": "3.01",
+        "playTime": "292h played"
+    },
+    {
+        "name": "Magneto",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1037001.png",
+        "damagePerMinute": "1.528/min",
+        "damageTankedPerMinute": "3.029/min",
+        "kills": "15.7/match",
+        "deaths": "4.9/match",
+        "assists": "2.7/match",
+        "kdaRatio": "3.76",
+        "playTime": "6020h played"
+    },
+    {
+        "name": "Magik",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1029001.png",
+        "damagePerMinute": "1.478/min",
+        "damageTankedPerMinute": "920/min",
+        "kills": "17.7/match",
+        "deaths": "6.6/match",
+        "assists": "0.1/match",
+        "kdaRatio": "2.68",
+        "playTime": "531h played"
+    },
+    {
+        "name": "Doctor Strange",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1018001.png",
+        "damagePerMinute": "1.448/min",
+        "damageTankedPerMinute": "3.404/min",
+        "kills": "15.0/match",
+        "deaths": "4.7/match",
+        "assists": "1.6/match",
+        "kdaRatio": "3.54",
+        "playTime": "1359h played"
+    },
+    {
+        "name": "The Thing",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1051001.png",
+        "damagePerMinute": "1.417/min",
+        "damageTankedPerMinute": "2.868/min",
+        "kills": "12.3/match",
+        "deaths": "4.2/match",
+        "assists": "5.2/match",
+        "kdaRatio": "4.17",
+        "playTime": "215h played"
+    },
+    {
+        "name": "Black Widow",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1033001.png",
+        "damagePerMinute": "1.395/min",
+        "damageTankedPerMinute": "682/min",
+        "kills": "17.3/match",
+        "deaths": "6.3/match",
+        "assists": "2.2/match",
+        "kdaRatio": "3.10",
+        "playTime": "431h played"
+    },
+    {
+        "name": "Venom",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1035001.png",
+        "damagePerMinute": "1.349/min",
+        "damageTankedPerMinute": "2.854/min",
+        "kills": "15.1/match",
+        "deaths": "4.6/match",
+        "assists": "3.7/match",
+        "kdaRatio": "4.11",
+        "playTime": "408h played"
+    },
+    {
+        "name": "Peni Parker",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1042001.png",
+        "damagePerMinute": "1.314/min",
+        "damageTankedPerMinute": "2.386/min",
+        "kills": "14.2/match",
+        "deaths": "4.4/match",
+        "assists": "2.7/match",
+        "kdaRatio": "3.81",
+        "playTime": "492h played"
+    },
+    {
+        "name": "Wolverine",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1049001.png",
+        "damagePerMinute": "1.310/min",
+        "damageTankedPerMinute": "1.431/min",
+        "kills": "15.2/match",
+        "deaths": "4.9/match",
+        "assists": "3.5/match",
+        "kdaRatio": "3.82",
+        "playTime": "1347h played"
+    },
+    {
+        "name": "Iron Fist",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1052001.png",
+        "damagePerMinute": "1.249/min",
+        "damageTankedPerMinute": "1.153/min",
+        "kills": "16.0/match",
+        "deaths": "5.8/match",
+        "assists": "0.1/match",
+        "kdaRatio": "2.78",
+        "playTime": "467h played"
+    },
+    {
+        "name": "Ultron",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1028001.png",
+        "damagePerMinute": "1.247/min",
+        "healPerMinute": "1.513/min",
+        "damageTankedPerMinute": "759/min",
+        "kills": "16.6/match",
+        "deaths": "5.1/match",
+        "assists": "19.5/match",
+        "kdaRatio": "7.16",
+        "playTime": "2613h played"
+    },
+    {
+        "name": "Black Panther",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1026001.png",
+        "damagePerMinute": "1.168/min",
+        "damageTankedPerMinute": "716/min",
+        "kills": "14.9/match",
+        "deaths": "6.5/match",
+        "assists": "0.1/match",
+        "kdaRatio": "2.29",
+        "playTime": "795h played"
+    },
+    {
+        "name": "Captain America",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1022001.png",
+        "damagePerMinute": "1.107/min",
+        "damageTankedPerMinute": "2.314/min",
+        "kills": "14.4/match",
+        "deaths": "4.3/match",
+        "assists": "2.8/match",
+        "kdaRatio": "3.97",
+        "playTime": "598h played"
+    },
+    {
+        "name": "Hulk",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1011001.png",
+        "damagePerMinute": "1.096/min",
+        "damageTankedPerMinute": "2.849/min",
+        "kills": "12.7/match",
+        "deaths": "3.9/match",
+        "assists": "3.6/match",
+        "kdaRatio": "4.19",
+        "playTime": "564h played"
+    },
+    {
+        "name": "Adam Warlock",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1046001.png",
+        "damagePerMinute": "991/min",
+        "healPerMinute": "1.331/min",
+        "damageTankedPerMinute": "885/min",
+        "kills": "11.8/match",
+        "deaths": "6.2/match",
+        "assists": "10.1/match",
+        "kdaRatio": "3.53",
+        "playTime": "461h played"
+    },
+    {
+        "name": "Spider Man",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1036001.png",
+        "damagePerMinute": "936/min",
+        "damageTankedPerMinute": "619/min",
+        "kills": "17.2/match",
+        "deaths": "7.5/match",
+        "assists": "3.8/match",
+        "kdaRatio": "2.81",
+        "playTime": "1113h played"
+    },
+    {
+        "name": "Jeff The Land Shark",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1047001.png",
+        "damagePerMinute": "822/min",
+        "healPerMinute": "1.846/min",
+        "damageTankedPerMinute": "615/min",
+        "kills": "14.5/match",
+        "deaths": "5.2/match",
+        "assists": "19.5/match",
+        "kdaRatio": "6.57",
+        "playTime": "1234h played"
+    },
+    {
+        "name": "Mantis",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1020001.png",
+        "damagePerMinute": "820/min",
+        "healPerMinute": "1.401/min",
+        "damageTankedPerMinute": "789/min",
+        "kills": "11.0/match",
+        "deaths": "5.6/match",
+        "assists": "25.1/match",
+        "kdaRatio": "6.49",
+        "playTime": "626h played"
+    },
+    {
+        "name": "Loki",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1016001.png",
+        "damagePerMinute": "672/min",
+        "healPerMinute": "2.414/min",
+        "damageTankedPerMinute": "653/min",
+        "kills": "10.5/match",
+        "deaths": "4.8/match",
+        "assists": "20.1/match",
+        "kdaRatio": "6.40",
+        "playTime": "2849h played"
+    },
+    {
+        "name": "Invisible Woman",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1050001.png",
+        "damagePerMinute": "639/min",
+        "healPerMinute": "2.261/min",
+        "damageTankedPerMinute": "1.167/min",
+        "kills": "11.1/match",
+        "deaths": "4.7/match",
+        "assists": "18.7/match",
+        "kdaRatio": "6.36",
+        "playTime": "2613h played"
+    },
+    {
+        "name": "Cloak & Dagger",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1025001.png",
+        "damagePerMinute": "634/min",
+        "healPerMinute": "2.477/min",
+        "damageTankedPerMinute": "685/min",
+        "kills": "11.4/match",
+        "deaths": "5.0/match",
+        "assists": "20.9/match",
+        "kdaRatio": "6.42",
+        "playTime": "1336h played"
+    },
+    {
+        "name": "Luna Snow",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1031001.png",
+        "damagePerMinute": "556/min",
+        "healPerMinute": "2.599/min",
+        "damageTankedPerMinute": "766/min",
+        "kills": "9.8/match",
+        "deaths": "5.1/match",
+        "assists": "18.5/match",
+        "kdaRatio": "5.59",
+        "playTime": "6083h played"
+    },
+    {
+        "name": "Rocket Raccoon",
+        "imageUrl": "https://rivalstracker.com/_ipx/s_40x40/images/heroes/SelectHero/img_selecthero_1023001.png",
+        "damagePerMinute": "145/min",
+        "healPerMinute": "2.177/min",
+        "damageTankedPerMinute": "431/min",
+        "kills": "4.2/match",
+        "deaths": "3.7/match",
+        "assists": "21.6/match",
+        "kdaRatio": "7.07",
+        "playTime": "2988h played"
+    }
+]
 
 /**
  * @typedef {object} Player
@@ -542,20 +583,28 @@ function calculateStatDifferences(player1, player2) {
  */
 function getTop500Player(player1, matchDurationSeconds) {
     let heroAliases = [player1.hero, player1.hero.replace(" ", "-"), player1.hero.replace("-", " ")];
+    let hero = heroDetails.find(hero => heroAliases.includes(hero.name));
 
-    if (!heroDetails || !heroDetails["Damage per Minute"] || !heroDetails["Damage Tanked per Minute"] || !heroDetails["Heal per Minute"]) {
-        throw new Error("heroDetails object is missing required properties.");
-    }
+    let heroDmg = hero["damagePerMinute"];
+    let heroBlock = hero["damageTankedPerMinute"];
+    let heroHeal = hero["healPerMinute"];
+    let heroKills = hero["kills"];
+    let heroDeaths = hero["deaths"];
+    let heroAssists = hero["assists"];
 
-    let heroDmg = heroDetails["Damage per Minute"].find(hero => heroAliases.includes(hero.name));
-    let heroBlock = heroDetails["Damage Tanked per Minute"].find(hero => heroAliases.includes(hero.name));
-    let heroHeal = heroDetails["Heal per Minute"].find(hero => heroAliases.includes(hero.name));
-    console.log(player1.hero + ": ", heroDmg, heroBlock, heroHeal)
+    console.log(player1.hero + ": ", heroDmg, heroBlock, heroHeal);
 
-    let dmgPerMin = heroDmg ? parseInt(heroDmg.statValue.replace(/[^0-9]/g, "")) : 0;
-    let blockedPerMin = heroBlock ? parseInt(heroBlock.statValue.replace(/[^0-9]/g, "")) : 0;
-    let healPerMin = heroHeal ? parseInt(heroHeal.statValue.replace(/[^0-9]/g, "")) : 0;
-    console.log(player1.hero + ": " + dmgPerMin + " " + blockedPerMin + " " + healPerMin)
+    // Whole numbers/integers, thus remove the "."
+    let dmgPerMin = heroDmg ? parseInt(heroDmg.replace(/[^0-9]/g, "")) : 0;
+    let blockedPerMin = heroBlock ? parseInt(heroBlock.replace(/[^0-9]/g, "")) : 0;
+    let healPerMin = heroHeal ? parseInt(heroHeal.replace(/[^0-9]/g, "")) : 0;
+
+    // Actual fraction numbers, thus do not remove the "." or ","
+    let killsPerMatch = heroKills ? parseFloat(heroKills.replace(/[^0-9.,]/g, "")) : 0;
+    let deathsPerMatch = heroDeaths ? parseFloat(heroDeaths.replace(/[^0-9.,]/g, "")) : 0;
+    let assistsPerMatch = heroAssists ? parseFloat(heroAssists.replace(/[^0-9.,]/g, "")) : 0;
+
+    console.log(player1.hero + ": " + dmgPerMin + " " + blockedPerMin + " " + healPerMin);
 
     /** @type {Player} */
     let player2 = {
@@ -564,9 +613,11 @@ function getTop500Player(player1, matchDurationSeconds) {
         damage: parseInt("" + ((dmgPerMin / 60.0) * matchDurationSeconds)),
         blocked: parseInt("" + ((blockedPerMin / 60.0) * matchDurationSeconds)),
         healing: parseInt("" + ((healPerMin / 60.0) * matchDurationSeconds)),
-        kills: 0,
-        deaths: 0,
-        assists: 0,
+        kills: killsPerMatch,
+        deaths: deathsPerMatch,
+        assists: assistsPerMatch,
+        kdaRatio: deathsPerMatch === 0 ? '∞' : ((killsPerMatch + assistsPerMatch) / deathsPerMatch).toFixed(2),
+        playTime: hero["playTime"] || "Unknown",
     };
 
     return player2;
@@ -1023,7 +1074,7 @@ function getComparisonTableEfficiency(pairs) {
 
     registerCopyBtns(table);
 
-    return table;
+    return { table: table, sortedPairs: sortedPairs };
 }
 
 /**
@@ -1262,14 +1313,17 @@ function processGameData(team1, team2, matchDurationSeconds) {
               border-color: white;
             }
             </style>
-            <h4>vs TOP 500 💥🛡️💚</h4>
-            <span><small>Ranked by Diff Damage 💥 + Blocked 🛡️ + Heal 💚 compared with the average TOP 500 player with the same hero. The TOP 500 players performance is adapted to this matches length.
-            Damage/Kills: high number = bad, because it means DPS had to hit more shots per kill.</small></span>
+            <h4>vs TOP 500 🔫⚔️💥🛡️💚</h4>
+            <span><small>Ranked by Diff Kills 🔫 + Assists ⚔️ + Damage 💥 + Blocked 🛡️ + Heal 💚 compared with the average TOP 500 player with the same hero. The TOP 500 players performance is adapted to this matches length.
+            Damage/Kills: high number = bad, because it means DPS had to hit more shots per kill.
+            Kills and assists are worth 1000 points each, to be able to compare their value with the amount of damage/block/heal.
+            Note that tanks with shields might have a slight advantage: their blocked stat might be too high because dmg to shields is not counted for enemy DPS.
+            We do NOT account for that.</small></span>
             `
         div.parentElement.insertBefore(pad(info), div);
 
         div.parentElement.insertBefore(pad(getMetaComparisonSpan(pairs500, team1, team3)), div);
-        div.parentElement.insertBefore(pad(getComparisonTable(pairs500)), div);
+        div.parentElement.insertBefore(pad(getComparisonTableNormalized(pairs500)), div);
 
         // Table
         info = document.createElement('div')
@@ -1296,7 +1350,8 @@ function processGameData(team1, team2, matchDurationSeconds) {
             </small></span>
             `
         div.parentElement.insertBefore(pad(info), div);
-        div.parentElement.insertBefore(pad(getComparisonTableEfficiency(pairs)), div);
+        let result = getComparisonTableEfficiency(pairs)
+        div.parentElement.insertBefore(pad(result.table), div);
 
         // Table
         info = document.createElement('div')
